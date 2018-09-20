@@ -1,0 +1,17 @@
+<uniview>
+<name>Galaxy Collision</name>
+
+<description>A simulation of multiple particle with different inital velocities influenced by the gravity of the Sun, Earth, Moon and Jupiter
+
+Dependencies:
+None
+</description>
+
+<creator>
+  Jeffrey SubbaRao<br />SCISS AB
+</creator>
+
+<version>1.0</version>
+<creationdate>Sep 18 2018</creationdate>
+
+</uniview>

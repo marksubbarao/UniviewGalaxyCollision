@@ -1,0 +1,107 @@
+in vec2 texCoord;
+uniform sampler2D dataTexture;
+uniform sampler2D randomTex;
+
+uniform vec3 initalPosition;
+uniform vec3 initalVelocityDir;
+uniform float initalVelocityMin;
+uniform float initalVelocityMax;
+
+
+$gravitatingObjectsUniformDeclerations
+
+uniform float outOfBoundsRadius;
+uniform bool reset;
+
+uniform bool frozen;
+uniform float gravitationalStrength;
+uniform float deltat;
+
+uniform int dataTexWidth;
+uniform int dataTexHeight;
+uniform int numSimulationStepsPerTimeStep;
+
+
+out vec4 FragColor;
+
+vec3 calcGravAcc(vec3 particlePos, vec3 objectPos, float objectMass){
+	vec3 r = particlePos-objectPos;
+	return gravitationalStrength*(objectMass)/dot(r,r) * (-normalize(r));
+}
+
+bool colideWith(vec3 pos1, vec3 pos2, vec3 objPos, float objRad){
+	vec3 p12po = objPos-pos1;
+	vec3 p12p2 = pos2-pos1;
+	vec3 closestPointOnLine = pos1 + dot(p12po,p12p2)/dot(p12p2,p12p2)*p12p2;
+	float dotProd = dot(closestPointOnLine-pos1,p12p2);
+	return dotProd > 0 && dotProd < dot(p12p2,p12p2) && length(closestPointOnLine-objPos) < objRad; 
+}
+
+void reinit(out vec3 vel, out vec3 pos){
+	float vmag = mix(initalVelocityMin,initalVelocityMax,texture(randomTex,texCoord).r);
+	vel = vmag*normalize(initalVelocityDir);
+	pos = initalPosition;
+}
+
+void main(){
+		float onepixoff = 1./dataTexWidth;
+		bool positionTexel = (int(gl_FragCoord.x)%2 == 0);
+		vec3 pos;
+		vec3 vel;
+		bool collision = false;
+		//Look up the position and velocity of the particle
+		if (positionTexel){
+			pos = texture(dataTexture, texCoord).rgb;
+			vel = texture(dataTexture, vec2(texCoord.x+onepixoff,texCoord.y)).rgb;
+		}
+		else{
+			vel = texture(dataTexture, texCoord).rgb;
+			pos = texture(dataTexture, vec2(texCoord.x-onepixoff,texCoord.y)).rgb;
+		}
+		
+		//Itereate through the substeps as appropreate
+		for (int i = 0; i < numSimulationStepsPerTimeStep && !(frozen || collision || reset); i++){
+			float dt = deltat/numSimulationStepsPerTimeStep;
+			vec3 acc = vec3(0);
+			//Add together the acceleration due to gravity
+$calculatGravitationalAcceleration
+			//Calculate the new position and velocity
+			vec3 npos = pos + vel*dt + .5*acc*dt*dt;
+			vel = vel + acc*dt;
+			#ifdef ENERGYCONSTRAIN
+				vec3 veli;
+				vec3 posi;
+				reinit (veli,posi);
+				float energyBalance = 0;
+				//Add the inital gravitational potential energy and kinetic to the energy balance
+$calculateInitalGravitationalPotentialEnergy
+				energyBalance += .5*dot(veli,veli);
+				//Subtract off the current gravitational potential energy from the energy balance to find the current kinetic energy
+$subtractCurrentGravitationalPotentialEnergy
+				float vmag;
+				//Convert the kinetic energy to a speed and set the velocity of the particle  to have that speed
+				if (energyBalance > 0){
+					float vmag = sqrt(2*energyBalance);
+					vel = vmag * normalize(vel);
+				}
+				else{
+					vel = .0001*normalize(acc);
+				}
+			#endif
+			//Check if we hit anything this time substep
+$collisionDetectionWithGravitatingObjects
+			//update position
+			pos = npos;
+		}
+		//Reinitalize particle if appropreate
+		if (reset||collision){
+			reinit (vel,pos);
+		}
+		//Write data to texture
+		if (positionTexel){
+			FragColor = vec4(pos,1);
+		}
+		else{
+			FragColor = vec4(vel,1);
+		}
+}

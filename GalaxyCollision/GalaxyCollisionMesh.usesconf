@@ -1,0 +1,119 @@
+mesh
+{
+    glslVersion 400
+    cullRadius 100000
+    data sphere ./modules/GalaxyCollision/sphere.3ds
+    data quad  ./modules/GalaxyCollision/quad.3ds
+    data particles ./modules/GalaxyCollision/galCollision.uvstream
+    
+    propertyCollection
+    {
+        __objectName__
+        {
+            vec1f gravitationalStrength 10000.0 | public
+            vec1f timeStep              5.0 | public
+            vec1f massRatio             1.0 | public |
+            vec1f particleSize          12  | public
+            vec3f initialPosition       7500 0 0 | public
+            vec3f particleColor         0.15 1 1 | public | widget color_rgb
+            bool reset                  true | public
+            bool frozen                 false | public
+            bool corotating             true | public
+            vec1f incidentAngle         0. | public | widget slider | range -90 90 | desc "The angle of approach for the second galaxy, a value of 0 is head-on"
+            vec1f incomingSpeed         1 | public | desc "The incoming speed of the second galaxy"
+            vec1f incomingInclination   0 | public | widget slider | range -90 90 | desc "The inclication of the incoming galaxy"
+        }
+    }
+    
+    renderTexture
+    {
+        name                      dataTexture
+        width                     1024
+        height                    512
+        numTextures               1
+        isPingPong                true
+        isPersistent              true
+        isFramePersistent         true
+        internalTextureFormat     GL_RGB32F
+        magnify                   GL_NEAREST
+        minify                    GL_NEAREST
+    }
+
+    pass
+    {
+        useDataObject quad
+        renderTarget
+        {
+            name dataTexture
+            enableColorClear false
+        }
+        viewIndependent true
+
+        shader
+        {
+            type defaultMeshShader
+            {
+                vertexShader     ./modules/GalaxyCollision/pass0.vs
+                fragmentShader   ./modules/GalaxyCollision/pass0.fs
+                enable true
+                textureFBO dataTexture dataTexture
+                stateManagerVar __objectName__.gravitationalStrength gravitationalStrength
+                stateManagerVar __objectName__.massRatio  massRatio
+             
+                stateManagerVar __objectName__.initialPosition        initialPosition
+                stateManagerVar __objectName__.timestep        deltat
+                stateManagerVar __objectName__.reset        reset
+                stateManagerVar __objectName__.frozen        frozen
+                stateManagerVar __objectName__.incidentAngle   incidentAngle
+                stateManagerVar __objectName__.incomingSpeed   incomingSpeed
+                stateManagerVar __objectName__.corotating        isCorotating
+
+                stateManagerVar __objectName__.incomingInclination incomingInclination
+                
+                texture initTexture ./modules/GalaxyCollision/galParticles.png
+                {
+                    colorspace linear
+                }
+                
+                parameter1i dataTexWidth  1024
+
+                glState
+                {
+                    UV_BLEND_ENABLE false
+                    UV_DEPTH_ENABLE false
+                }
+            }
+        }
+    }
+
+
+    pass
+    {
+        useDataObject particles
+        shader
+        {
+            type defaultMeshShader
+            {
+                vertexShader     ./modules/GalaxyCollision/pass1.vs
+                fragmentShader   ./modules/GalaxyCollision/pass1.fs
+                geometryShader   ./modules/GalaxyCollision/pass1.gs
+                stateManagerVar __objectName__.particleSize particleSize
+                stateManagerVar __objectName__.massRatio  massRatio
+
+                textureFBO dataTexture dataTexture
+                
+                
+                stateManagerVar __objectName__.Alpha uv_alpha
+                stateManagerVar __objectName__.particleColor particleColor
+                stateManagerVar __objectName__.incidentAngle        incidentAngle
+                glState
+                {
+                    UV_CULL_FACE_ENABLE false
+                    UV_DEPTH_ENABLE false
+                    UV_BLEND_ENABLE true
+                    UV_BLEND_FUNC GL_SRC_ALPHA GL_ONE
+                }
+            }
+        }
+    }
+}
