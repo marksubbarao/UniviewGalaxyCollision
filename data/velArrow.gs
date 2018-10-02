@@ -1,5 +1,6 @@
-layout(points) in;
+layout(triangles) in;
 layout(triangle_strip, max_vertices = 4) out;
+
 
 uniform mat4 uv_modelViewProjectionMatrix;
 uniform mat4 uv_modelViewMatrix;
@@ -9,19 +10,11 @@ uniform mat4 uv_modelViewInverseMatrix;
 uniform vec4 uv_cameraPos;
 uniform mat4 uv_scene2ObjectMatrix;
 
-uniform int uv_simulationtimeDays;
-uniform float uv_simulationtimeSeconds;
-uniform float uv_fade;
-
-uniform float particleSize = 900;
-uniform vec3 gal1Color;
-uniform vec3 gal2Color;
 uniform float incidentAngle;
-uniform float massRatio;
-
-in int xInd[];
-in int yInd[];
-flat out vec4 partColor;
+uniform float incomingSpeed;
+uniform vec3 initialPosition;
+const float arrowScale = 0.333;
+const float radius = 500.;
 out vec2 texcoord;
 
 
@@ -41,36 +34,28 @@ mat4 getRotationMatrix(vec3 axis, float angle)
 }
 
 
-void drawSprite(vec4 position, float radius, float rotation)
-{
-    vec3 objectSpaceUp = vec3(0, 0, 1);
-    vec3 objectSpaceCamera = (uv_modelViewInverseMatrix * vec4(0, 0, 0, 1)).xyz;
-    vec3 cameraDirection = normalize(objectSpaceCamera - position.xyz);
-    vec3 orthogonalUp = normalize(objectSpaceUp - cameraDirection * dot(cameraDirection, objectSpaceUp));
-    vec3 rotatedUp = mat3(getRotationMatrix(cameraDirection, rotation)) * orthogonalUp;
-    vec3 side = cross(rotatedUp, cameraDirection);
-	side *= sign(dot(cameraDirection,position.xyz));
-    texcoord = vec2(-1., 1.);
-	gl_Position = uv_modelViewProjectionMatrix * vec4(position.xyz + radius * (-side + rotatedUp), 1);
-	EmitVertex();
-    texcoord = vec2(-1., -1.);
-	gl_Position = uv_modelViewProjectionMatrix * vec4(position.xyz + radius * (-side - rotatedUp), 1);
-	EmitVertex();
-    texcoord = vec2(1, 1);
-	gl_Position = uv_modelViewProjectionMatrix * vec4(position.xyz + radius * (side + rotatedUp), 1);
-	EmitVertex();
-    texcoord = vec2(1, -1.);
-	gl_Position = uv_modelViewProjectionMatrix * vec4(position.xyz + radius * (side - rotatedUp), 1);
-	EmitVertex();
-	EndPrimitive();
-}
-
 
 void main()
 {
-	float ratio = clamp(massRatio, 0.5,1.5);
-	bool isMovingGal = (yInd[0]>ratio*256);
-	partColor.rgb = !isMovingGal ? gal1Color : gal2Color;
-	partColor.a = 1.;
-	drawSprite(gl_in[0].gl_Position,particleSize,0.0);
+	vec3 startArrowPos = initialPosition;
+	vec3 endArrowPos = -arrowScale*incomingSpeed*initialPosition;
+    vec3 objectSpaceUp = vec3(0, 0, 1);
+    vec3 objectSpaceCamera = (uv_modelViewInverseMatrix * vec4(0, 0, 0, 1)).xyz;
+    vec3 cameraDirection = normalize(objectSpaceCamera - 0.5*(startArrowPos + endArrowPos));
+    vec3 orthogonalUp = normalize(objectSpaceUp - cameraDirection * dot(cameraDirection, objectSpaceUp));
+    texcoord = vec2(-1., 1.);
+	gl_Position = uv_modelViewProjectionMatrix * vec4(startArrowPos + radius * (orthogonalUp), 1);
+	EmitVertex();
+    texcoord = vec2(-1., -1.);
+	gl_Position = uv_modelViewProjectionMatrix * vec4(startArrowPos + radius * ( - orthogonalUp), 1);
+	EmitVertex();
+    texcoord = vec2(1, 1);
+	gl_Position = uv_modelViewProjectionMatrix * vec4(endArrowPos + radius * ( orthogonalUp), 1);
+	EmitVertex();
+    texcoord = vec2(1, -1.);
+	gl_Position = uv_modelViewProjectionMatrix * vec4(endArrowPos + radius * ( - orthogonalUp), 1);
+	EmitVertex();
+	EndPrimitive();
+
+	
 }
