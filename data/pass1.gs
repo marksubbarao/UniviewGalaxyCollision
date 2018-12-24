@@ -16,7 +16,6 @@ uniform float uv_fade;
 uniform float particleSize = 900;
 uniform vec3 gal1Color;
 uniform vec3 gal2Color;
-uniform float incidentAngle;
 uniform float massRatio;
 
 in int xInd[];
