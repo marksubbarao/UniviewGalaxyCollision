@@ -1,11 +1,20 @@
+in vec2 texcoordFS;
+
+out vec4 FragColor;
+
 uniform float uv_fade;
 uniform float uv_alpha;
-in vec2 texcoord;
-out vec4 FragColor;
-void main(){
+uniform bool reset;
+uniform sampler2D arrowTex;
 
-
-	float rad = length(texcoord);
-	FragColor = vec4(1);
-	FragColor.a *=  uv_fade * uv_alpha;	
+void main()
+{
+	if (!reset)
+	{
+		discard;
+	}
+	
+	vec4 color = texture(arrowTex, texcoordFS);
+	color.a *= smoothstep(0.,.1, length(color.rgb)) * uv_fade * uv_alpha;
+	FragColor = color;
 }
