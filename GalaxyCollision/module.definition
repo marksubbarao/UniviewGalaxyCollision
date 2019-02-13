@@ -1,17 +1,17 @@
 <uniview>
 <name>Galaxy Collision</name>
 
-<description>A simulation of multiple particle with different inital velocities influenced by the gravity of the Sun, Earth, Moon and Jupiter
+<description>A restricted threebody interactive galaxy collision simulation
 
 Dependencies:
 None
 </description>
 
 <creator>
-  Jeffrey SubbaRao<br />SCISS AB
+  Mark SubbaRao (1) and Jeffrey SubbaRao (2)<br />1. Adler Planetarium<br/>2. SCISS AB
 </creator>
 
 <version>1.0</version>
-<creationdate>Sep 18 2018</creationdate>
+<creationdate>Feb 13 2019</creationdate>
 
 </uniview>

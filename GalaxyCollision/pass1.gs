@@ -14,15 +14,15 @@ uniform float uv_simulationtimeSeconds;
 uniform float uv_fade;
 
 uniform float particleSize = 900;
-uniform vec3 particleColor;
-uniform float incidentAngle;
+uniform vec3 gal1Color;
+uniform vec3 gal2Color;
 uniform float massRatio;
 
 in int xInd[];
 in int yInd[];
 flat out vec4 partColor;
 out vec2 texcoord;
-uniform vec3 headOnColor = vec3(1,.25,.25);
+
 
 
 
@@ -69,7 +69,7 @@ void main()
 {
 	float ratio = clamp(massRatio, 0.5,1.5);
 	bool isMovingGal = (yInd[0]>ratio*256);
-	partColor.rgb = !isMovingGal ? mix(particleColor,headOnColor, cos(radians(incidentAngle))/2.) : particleColor;
+	partColor.rgb = !isMovingGal ? gal1Color : gal2Color;
 	partColor.a = 1.;
 	drawSprite(gl_in[0].gl_Position,particleSize,0.0);
 }

@@ -2,26 +2,28 @@ mesh
 {
     glslVersion 400
     cullRadius 100000
-    data sphere ./modules/GalaxyCollision/sphere.3ds
     data quad  ./modules/GalaxyCollision/quad.3ds
     data particles ./modules/GalaxyCollision/galCollision.uvstream
+    data quad2  ./modules/GalaxyCollision/quad.uvstream
     
     propertyCollection
     {
         __objectName__
         {
             vec1f gravitationalStrength 10000.0 | public
-            vec1f timeStep              5.0 | public
-            vec1f massRatio             1.0 | public |
-            vec1f particleSize          12  | public
-            vec3f initialPosition       7500 0 0 | public
-            vec3f particleColor         0.15 1 1 | public | widget color_rgb
+            vec1f timeStep              40.0 | public
+            vec1f massRatio             1.0 | public | widget slider | range .5 1.5 | desc "The relative mass of the two galaxies"
+            vec1f particleSize          40  | public
+            vec3f initialPosition       30000 0 0 | public
+            vec3f gal1Color             0.15 1 1 | public | widget color_rgb
+            vec3f gal2Color             1 0.15 1 | public | widget color_rgb
             bool reset                  true | public
             bool frozen                 false | public
             bool corotating             true | public
             vec1f incidentAngle         0. | public | widget slider | range -90 90 | desc "The angle of approach for the second galaxy, a value of 0 is head-on"
-            vec1f incomingSpeed         1 | public | desc "The incoming speed of the second galaxy"
+            vec1f incomingSpeed         3 | public | widget slider | range 0 5 | desc "The incoming speed of the second galaxy"
             vec1f incomingInclination   0 | public | widget slider | range -90 90 | desc "The inclication of the incoming galaxy"
+            vec1f staticInclination     0 | public | widget slider | range -90 90 | desc "The inclication of the static galaxy"
         }
     }
     
@@ -69,6 +71,7 @@ mesh
                 stateManagerVar __objectName__.corotating        isCorotating
 
                 stateManagerVar __objectName__.incomingInclination incomingInclination
+                stateManagerVar __objectName__.staticInclination staticInclination
                 
                 texture initTexture ./modules/GalaxyCollision/galParticles.png
                 {
@@ -104,8 +107,8 @@ mesh
                 
                 
                 stateManagerVar __objectName__.Alpha uv_alpha
-                stateManagerVar __objectName__.particleColor particleColor
-                stateManagerVar __objectName__.incidentAngle        incidentAngle
+                stateManagerVar __objectName__.gal1Color gal1Color
+                stateManagerVar __objectName__.gal2Color gal2Color
                 glState
                 {
                     UV_CULL_FACE_ENABLE false
@@ -116,4 +119,99 @@ mesh
             }
         }
     }
+
+    pass # Velocity Arrow
+    {
+        passEnable true
+        useDataObject quad2
+        shader
+        {
+        type defaultMeshShader
+           {
+                fragmentShader   ./modules/GalaxyCollision/arrow.fs
+                vertexShader     ./modules/GalaxyCollision/velArrow.vs
+                stateManagerVar __objectName__.initialPosition        initialPosition
+                stateManagerVar __objectName__.reset        reset
+                stateManagerVar __objectName__.incidentAngle   incidentAngle
+                stateManagerVar __objectName__.incomingSpeed   incomingSpeed
+                stateManagerVar __objectName__.Alpha uv_alpha
+                
+                texture arrowTex ./modules/GalaxyCollision/arrowSm.dds
+                {
+                }
+
+                glState
+                {
+                    UV_CULL_FACE_ENABLE false
+                    UV_BLEND_ENABLE true
+                    UV_BLEND_FUNC GL_SRC_ALPHA GL_ONE
+                    UV_DEPTH_ENABLE false
+                }
+            }
+        }
+    }
+
+    pass # Incoming Rotation Arrow
+    {
+        passEnable true
+        useDataObject quad2
+        shader
+        {
+        type defaultMeshShader
+           {
+                fragmentShader   ./modules/GalaxyCollision/arrow.fs
+                vertexShader     ./modules/GalaxyCollision/rotArrow.vs
+                stateManagerVar __objectName__.initialPosition        initialPosition
+                stateManagerVar __objectName__.reset        reset
+                stateManagerVar __objectName__.corotating        isCorotating
+                stateManagerVar __objectName__.incomingInclination incomingInclination
+                stateManagerVar __objectName__.massRatio  massRatio
+                stateManagerVar __objectName__.Alpha uv_alpha
+                
+                texture arrowTex ./modules/GalaxyCollision/curvedArrowSm.dds
+                {
+                }
+
+                glState
+                {
+                    UV_CULL_FACE_ENABLE false
+                    UV_BLEND_ENABLE true
+                    UV_BLEND_FUNC GL_SRC_ALPHA GL_ONE
+                    UV_DEPTH_ENABLE false
+                }
+            }
+        }
+    }
+    pass # Static Rotation Arrow
+    {
+        passEnable true
+        useDataObject quad2
+        shader
+        {
+        type defaultMeshShader
+           {
+                fragmentShader   ./modules/GalaxyCollision/arrow.fs
+                vertexShader     ./modules/GalaxyCollision/rotArrow2.vs
+                stateManagerVar __objectName__.reset        reset
+                stateManagerVar __objectName__.corotating        isCorotating
+                stateManagerVar __objectName__.staticInclination staticInclination
+                stateManagerVar __objectName__.massRatio  massRatio
+                stateManagerVar __objectName__.Alpha uv_alpha
+                
+                texture arrowTex ./modules/GalaxyCollision/curvedArrowSm.dds
+                {
+                }
+
+                glState
+                {
+                    UV_CULL_FACE_ENABLE false
+                    UV_BLEND_ENABLE true
+                    UV_BLEND_FUNC GL_SRC_ALPHA GL_ONE
+                    UV_DEPTH_ENABLE false
+                }
+            }
+        }
+    }
+
+
 }
