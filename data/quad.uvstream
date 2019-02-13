@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<DataStream version="0.1">
+    <PrimitiveType>triangle_strip</PrimitiveType>
+    <DataBindings>
+        <Variable>
+            <Name>texcoord</Name>         
+            <Type>vec2f</Type>
+        </Variable>          
+    </DataBindings>
+    <CSVData>
+        <Path>quad.csv</Path>
+        <Headers>
+            <Variable>              
+                <Cols>0,1</Cols>
+            </Variable>
+        </Headers>
+    </CSVData>
+</DataStream>  

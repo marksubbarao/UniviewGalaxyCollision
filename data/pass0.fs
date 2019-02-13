@@ -17,6 +17,7 @@ uniform float incidentAngle;
 uniform float incomingSpeed;
 uniform bool isCorotating;
 uniform float incomingInclination;
+uniform float staticInclination;
 
 out vec4 FragColor;
 const float smoothingLength = 750.0;
@@ -68,7 +69,12 @@ void main()
 			}
 			particleVel = (rotMat*vec4(particleVel,0.)).xyz;
 			particleVel += incomingVel;
-		}	
+		} else {
+			// Rotation for the static Galaxy
+			mat4 rotMat = getRotationMatrix(vec3(0.,1.,0.), radians(staticInclination));
+			particlePos = (rotMat*vec4(particlePos,1.)).xyz;
+			particleVel = (rotMat*vec4(particleVel,0.)).xyz;
+		}
 		if (i==0 && j==0) 
 		{
 			particlePos =  vec3(0.);

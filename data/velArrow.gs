@@ -14,7 +14,7 @@ uniform float incidentAngle;
 uniform float incomingSpeed;
 uniform vec3 initialPosition;
 const float arrowScale = 0.333;
-const float radius = 500.;
+const float radius = 10000.;
 out vec2 texcoord;
 
 
